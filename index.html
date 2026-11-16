@@ -6155,6 +6155,7 @@ function startScrollTimer(seconds) {
       mountForgeSceneInto("forge-stage-mount-4");
       document.getElementById("forge-deck-label").innerText = `Mazo: ${state.preferredDeck}`;
       startPhaseTimer(35 * 60, "timer-chamber4", () => enterChamber5());
+      session.sessionMistakes = [...session.purgatory];
       if (session.tiredMode) session.purgatory = [];
       renderForgeItem();
     }
@@ -6267,14 +6268,23 @@ function startScrollTimer(seconds) {
         } catch (e) {}
       }
 
-      const fallback = getActiveQuestions().map(q => ({
+      // Solo preguntas falladas o respondidas con duda en esta guardia (o pendientes por curva de olvido)
+      const mistakesSource = (session.sessionMistakes && session.sessionMistakes.length > 0)
+        ? session.sessionMistakes
+        : getActiveQuestions().filter(q => {
+            const mem = state.questionMemory?.[getQuestionHash(q)];
+            return mem && mem.streak <= 1;
+          });
+
+      const mistakesCards = mistakesSource.map(q => ({
         cardId: null,
         front: q.explanation,
-        back: "",
+        back: q.options ? q.options[q.correct] : "",
         extra: `Pivote: ${q.pivot}`
       }));
-      session.ankiQueue = [...state.createdCards.slice(-15), ...fallback];
-      indicator.innerText = `Grimorio de Guardia (${session.ankiQueue.length} tarjetas)`;
+
+      session.ankiQueue = [...state.createdCards.slice(-15), ...mistakesCards];
+      indicator.innerText = `Repaso Quirúrgico (${session.ankiQueue.length} tarjetas)`;
       session.currentAnkiIndex = 0;
       loadGrimoireCard();
     }
