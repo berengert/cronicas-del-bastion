@@ -3934,7 +3934,20 @@
 
     function getDueQuestionsList() {
       const all = getActiveQuestions();
-      return all.filter(q => isQuestionDueByForgettingCurve(q));
+      const due = all.filter(q => isQuestionDueByForgettingCurve(q));
+      
+      // SISTEMA DE RESCATE EN COMBATE: Si estás en plena pelea contra un jefe (Fase 2) 
+      // y la curva del olvido vació la cola porque ya respondiste todas,
+      // reciclamos las preguntas ordenándolas por las vistas hace más tiempo para no bloquear el asedio.
+      if (due.length === 0 && session.phase === 2 && session.currentBoss) {
+        return [...all].sort((a, b) => {
+          const memA = state.questionMemory?.[getQuestionHash(a)]?.lastAnsweredAt || 0;
+          const memB = state.questionMemory?.[getQuestionHash(b)]?.lastAnsweredAt || 0;
+          return memA - memB;
+        });
+      }
+      
+      return due;
     }
 
     function getNextQuestionReadyTimeText() {
