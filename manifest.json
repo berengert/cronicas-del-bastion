@@ -1,7 +1,7 @@
 {
   "name": "Crónicas del Bastión",
   "short_name": "Bastión RPG",
-  "start_url": "./index.html",
+  "start_url": "/cronicas-del-bastion/index.html",
   "display": "standalone",
   "background_color": "#080604",
   "theme_color": "#1f1107",
