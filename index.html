@@ -3933,9 +3933,23 @@
     }
 
     function getDueQuestionsList() {
-      const all = getActiveQuestions();
-      return all.filter(q => isQuestionDueByForgettingCurve(q));
-    }
+  const all = getActiveQuestions();
+  const adv = getActiveAdventure();
+
+  // 2. Las preguntas se repiten solo en las campañas de invocación (ignorando curva del olvido)
+  if (adv) {
+    return [...all].sort((a, b) => {
+      const memA = state.questionMemory?.[getQuestionHash(a)]?.lastAnsweredAt || 0;
+      const memB = state.questionMemory?.[getQuestionHash(b)]?.lastAnsweredAt || 0;
+      return memA - memB;
+    });
+  }
+
+  // 1. Las preguntas siguen el patrón de curva del olvido en la campaña principal
+  const due = all.filter(q => isQuestionDueByForgettingCurve(q));
+  
+  return due;
+}
 
     function getNextQuestionReadyTimeText() {
       const all = getActiveQuestions();
